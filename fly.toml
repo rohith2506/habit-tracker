@@ -1,25 +1,30 @@
-app = "together"
-primary_region = "ams"
+# fly.toml app configuration file generated for together-floral-fern-8039 on 2026-05-25T21:43:39+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'hachimi'
+primary_region = 'ams'
 
 [build]
 
 [env]
-  DATABASE_URL = "sqlite:////data/db.sqlite"
-  UPLOADS_DIR = "/data/uploads"
-  DEBUG = "false"
+  DATABASE_URL = 'sqlite:////data/db.sqlite'
+  DEBUG = 'false'
+  UPLOADS_DIR = '/data/uploads'
 
 [[mounts]]
-  source = "data"
-  destination = "/data"
+  source = 'data'
+  destination = '/data'
 
 [http_service]
   internal_port = 8000
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
 
 [[vm]]
-  cpu_kind = "shared"
+  cpu_kind = 'shared'
   cpus = 1
   memory_mb = 512
