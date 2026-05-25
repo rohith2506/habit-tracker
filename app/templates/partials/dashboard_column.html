@@ -1,0 +1,61 @@
+{% set u = col.user %}
+{% set is_blue = u.color == 'blue' %}
+<section class="card">
+  <header class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-2">
+      <span class="avatar {% if is_blue %}avatar-blue{% else %}avatar-pink{% endif %}">{{ u.avatar_initial }}</span>
+      <div>
+        <div class="font-medium">{{ u.display_name }}{% if is_me %} <span class="text-xs text-neutral-500">(you)</span>{% endif %}</div>
+        <div class="text-xs text-neutral-500">today · {{ col.done_count }} of {{ col.habits_count }} done</div>
+      </div>
+    </div>
+    {% if is_me %}<a href="/checkin" class="text-xs text-neutral-500 hover:underline">Edit →</a>{% endif %}
+  </header>
+
+  <div class="mb-3">
+    {% if not col.rows %}
+      <p class="text-xs text-neutral-500 py-3 text-center">No habits.</p>
+    {% endif %}
+    {% for row in col.rows %}
+      <div class="flex items-center justify-between py-1 text-sm border-b-0.5 border-neutral-200 dark:border-neutral-800 last:border-b-0">
+        <div class="flex items-center gap-2">
+          <i class="ti {{ row.habit.icon }}"></i>
+          <span class="truncate">{{ row.habit.name }}</span>
+        </div>
+        <span class="text-xs">
+          {% set s = row.entry.state if row.entry else 'pending' %}
+          {% if s == 'done' %}<i class="ti ti-circle-check state-done"></i>
+          {% elif s == 'rest' %}<i class="ti ti-zzz state-rest"></i>
+          {% elif s == 'missed' %}<i class="ti ti-x state-missed"></i>
+          {% else %}<i class="ti ti-circle state-pending"></i>
+          {% endif %}
+        </span>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if col.goals %}
+    <div class="mb-2 text-xs text-neutral-500 uppercase tracking-wider">Goals</div>
+    <div class="space-y-2 mb-3">
+      {% for item in col.goals %}
+        <div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="truncate min-w-0">{{ item.goal.title }}</span>
+            {% if item.pace.message %}<span class="pill {{ item.pace.badge_class }}">{{ item.pace.message }}</span>{% endif %}
+          </div>
+          {% if item.goal.kind == 'measurable' %}
+            <div class="progress-track mt-1">
+              <div class="progress-fill {% if is_blue %}fill-blue{% else %}fill-pink{% endif %}" style="width: {{ item.summary.pct }}%"></div>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <footer class="flex items-center gap-3 text-xs text-neutral-500 pt-2 border-t-0.5 border-neutral-200 dark:border-neutral-800">
+    <span><i class="ti ti-flame"></i> {{ col.streak }} day streak</span>
+    <span>·</span>
+    <span><i class="ti ti-chart-bar"></i> {{ col.weekly_pct }}% this week</span>
+  </footer>
+</section>

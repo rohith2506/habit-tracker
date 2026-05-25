@@ -1,0 +1,20 @@
+{% if not my_goals %}
+  <div class="card text-center text-sm text-neutral-500 py-8">No goals yet for this block.</div>
+{% endif %}
+
+{% set grouped = {} %}
+{% for item in my_goals %}
+  {% set cat = item.goal.category %}
+  {% set _ = grouped.setdefault(cat, []).append(item) %}
+{% endfor %}
+
+{% for cat, items in grouped.items() %}
+  <h3 class="text-xs uppercase tracking-wider text-neutral-500 mb-2 mt-3">{{ cat }}</h3>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+    {% for item in items %}
+      {% with goal=item.goal, summary=item.summary, pace=item.pace, fill=(user.color == 'blue' and 'fill-blue' or 'fill-pink') %}
+        {% include "partials/goal_card.html" %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+{% endfor %}

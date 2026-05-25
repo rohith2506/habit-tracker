@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}New post · Together{% endblock %}
+{% block content %}
+  <header class="mb-5">
+    <h1 class="text-xl font-medium">New post</h1>
+    <p class="text-sm text-neutral-500">Pick a type, then share something.</p>
+  </header>
+  <form method="post" action="/feed" enctype="multipart/form-data" class="card space-y-3" id="composer">
+    <select class="select" name="type" id="post-type"
+            onchange="updateComposer(this.value)">
+      {% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+    </select>
+
+    <div id="media-painting" style="display:none">
+      <label class="text-xs text-neutral-500">Image (png/jpg/webp/gif)</label>
+      <input class="input mt-1" name="media" type="file" accept="image/*" />
+    </div>
+    <div id="media-piano" style="display:none">
+      <label class="text-xs text-neutral-500">Audio (mp3/m4a/wav/ogg)</label>
+      <input class="input mt-1" name="media" type="file" accept="audio/*" />
+    </div>
+
+    <textarea name="body" class="input textarea" rows="6" id="body-textarea" placeholder="Write something… (markdown ok)"></textarea>
+
+    <div class="flex justify-end gap-2">
+      <a href="/feed" class="btn">Cancel</a>
+      <button class="btn btn-primary">Post</button>
+    </div>
+  </form>
+  <script>
+    function updateComposer(value) {
+      const isPainting = value === 'painting';
+      const isPiano = value === 'piano';
+      document.getElementById('media-painting').style.display = isPainting ? '' : 'none';
+      document.getElementById('media-piano').style.display = isPiano ? '' : 'none';
+      // Disable inactive media inputs so they don't submit empty files
+      document.querySelector('#media-painting input').disabled = !isPainting;
+      document.querySelector('#media-piano input').disabled = !isPiano;
+      const ta = document.getElementById('body-textarea');
+      ta.placeholder = (isPainting || isPiano) ? 'Optional caption…' : 'Write something… (markdown ok)';
+    }
+    updateComposer('writing');
+  </script>
+{% endblock %}

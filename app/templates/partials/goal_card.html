@@ -1,0 +1,106 @@
+{% set is_readonly = readonly|default(false) %}
+<div class="card">
+  <div class="flex items-start justify-between gap-2 mb-1">
+    <div class="min-w-0">
+      <div class="font-medium text-[15px] truncate">{{ goal.title }}</div>
+      {% if goal.description %}<div class="text-xs text-neutral-500 mt-0.5">{{ goal.description }}</div>{% endif %}
+    </div>
+    <div class="flex flex-col items-end gap-1">
+      {% if goal.status != 'active' %}
+        <span class="pill pill-muted">{{ goal.status }}</span>
+      {% elif pace.message %}
+        <span class="pill {{ pace.badge_class }}">{{ pace.message }}</span>
+      {% endif %}
+      {% if goal.amended_at %}<span class="pill pill-muted">amended</span>{% endif %}
+    </div>
+  </div>
+
+  {% if goal.kind == 'measurable' %}
+    <div class="text-xs text-neutral-500 mb-1">
+      {{ summary.current }}{% if goal.unit %} {{ goal.unit }}{% endif %}
+      <span class="opacity-50">/ {{ goal.target_value }}{% if goal.unit %} {{ goal.unit }}{% endif %}</span>
+      <span class="ml-1 opacity-70">{{ summary.pct }}%</span>
+    </div>
+    <div class="progress-track mb-2">
+      <div class="progress-fill {{ fill }}" style="width: {{ summary.pct }}%"></div>
+    </div>
+    {% if goal.milestones %}
+      <div class="flex flex-wrap gap-1 mb-2">
+        {% for m in goal.milestones %}
+          {% if is_readonly %}
+            <span class="pill {% if m.hit_at %}pill-success{% endif %}">{{ m.label }}</span>
+          {% else %}
+            <form method="post" action="/goals/{{ goal.id }}/milestone/{{ m.id }}/toggle" class="inline">
+              <button class="pill {% if m.hit_at %}pill-success{% endif %}">{{ m.label }}</button>
+            </form>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if not is_readonly and goal.status == 'active' %}
+      <form method="post" action="/goals/{{ goal.id }}/progress" class="flex gap-2 mt-1">
+        <input class="input flex-1" name="value" type="number" step="any" placeholder="current value" required />
+        <button class="btn">Log</button>
+      </form>
+    {% endif %}
+  {% else %}
+    {# binary #}
+    <div class="text-xs text-neutral-500 mb-2">
+      {% if goal.latest_result is none %}
+        No attempts yet.
+      {% else %}
+        Latest:
+        {% if goal.latest_result %}<span class="state-done">passed</span>{% else %}<span class="state-missed">missed</span>{% endif %}
+        {% if goal.last_attempt_at %} · {{ goal.last_attempt_at|fmt_datetime }}{% endif %}
+      {% endif %}
+    </div>
+    {% if goal.milestones %}
+      <div class="flex flex-wrap gap-1 mb-2">
+        {% for m in goal.milestones %}
+          {% if is_readonly %}
+            <span class="pill {% if m.hit_at %}pill-success{% endif %}">{{ m.label }}</span>
+          {% else %}
+            <form method="post" action="/goals/{{ goal.id }}/milestone/{{ m.id }}/toggle" class="inline">
+              <button class="pill {% if m.hit_at %}pill-success{% endif %}">{{ m.label }}</button>
+            </form>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if not is_readonly and goal.status == 'active' %}
+      <form method="post" action="/goals/{{ goal.id }}/attempt" class="flex gap-2 mt-1">
+        <select class="select w-28" name="result">
+          <option value="pass">passed</option>
+          <option value="fail">missed</option>
+        </select>
+        <input class="input flex-1" name="note" placeholder="note (optional)" />
+        <button class="btn">Log</button>
+      </form>
+    {% endif %}
+  {% endif %}
+
+  {% if not is_readonly %}
+    <div class="mt-2 flex items-center gap-3 text-xs">
+      {% if goal.status == 'active' %}
+        <details class="flex-1">
+          <summary class="text-neutral-500 cursor-pointer hover:text-neutral-900 dark:hover:text-neutral-100"><i class="ti ti-pencil"></i> Amend</summary>
+          <form method="post" action="/goals/{{ goal.id }}/update" class="space-y-2 mt-2">
+            <input class="input" name="title" value="{{ goal.title }}" />
+            {% if goal.kind == 'measurable' %}
+              <input class="input" name="target_value" type="number" step="any" value="{{ goal.target_value }}" placeholder="new target" />
+            {% endif %}
+            <input class="input" name="reason" placeholder="reason (visible in history)" />
+            <button class="btn">Save amendment</button>
+          </form>
+        </details>
+      {% endif %}
+      <form method="post" action="/goals/{{ goal.id }}/delete" class="ml-auto"
+            onsubmit="return confirm('Delete this goal permanently? All progress, attempts, and milestones for it will be removed. This cannot be undone.')">
+        <button class="text-neutral-400 hover:text-warning" title="Delete goal"><i class="ti ti-trash"></i></button>
+      </form>
+    </div>
+  {% endif %}
+  {% if goal.resolution_note %}
+    <div class="text-xs text-neutral-500 mt-2"><i class="ti ti-quote"></i> {{ goal.resolution_note }}</div>
+  {% endif %}
+</div>

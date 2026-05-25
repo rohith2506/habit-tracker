@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error · Together{% endblock %}
+{% block content %}
+  <div class="card max-w-md mx-auto text-center">
+    <div class="text-4xl mb-2">{{ status_code }}</div>
+    <div class="text-neutral-600 dark:text-neutral-400">{{ detail }}</div>
+    <div class="mt-4"><a href="/" class="btn">Back home</a></div>
+  </div>
+{% endblock %}

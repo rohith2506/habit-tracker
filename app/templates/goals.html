@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Goals · Together{% endblock %}
+{% block container_class %}max-w-4xl mx-auto px-4 py-6{% endblock %}
+{% block content %}
+  <header class="mb-5 flex items-end justify-between gap-4">
+    <div>
+      <h1 class="text-xl font-medium">Goals</h1>
+      <p class="text-sm text-neutral-500">Block: {{ block.start_date|fmt_date }} → {{ block.end_date|fmt_date }}</p>
+    </div>
+    <div class="flex gap-1">
+      <a href="?view=me" class="tab {% if view == 'me' %}active{% endif %}">You</a>
+      {% if other %}<a href="?view=other" class="tab {% if view == 'other' %}active{% endif %}">{{ other.display_name }}</a>{% endif %}
+      <a href="?view=both" class="tab {% if view == 'both' %}active{% endif %}">Both</a>
+    </div>
+  </header>
+
+  {% if view in ('me', 'both') %}
+    <section class="mb-6">
+      {% if view == 'both' %}<h2 class="text-sm font-medium text-neutral-500 mb-2">You</h2>{% endif %}
+      {% include "partials/goals_list.html" with context %}
+    </section>
+  {% endif %}
+
+  {% if view in ('other', 'both') and other %}
+    <section class="mb-6">
+      {% if view == 'both' %}<h2 class="text-sm font-medium text-neutral-500 mb-2">{{ other.display_name }}</h2>{% endif %}
+      {% with goals=other_goals, owner=other, readonly=True %}
+        {% include "partials/goals_list_readonly.html" %}
+      {% endwith %}
+    </section>
+  {% endif %}
+
+  {% if view in ('me', 'both') %}
+    <section class="card mt-4">
+      <h2 class="text-sm font-medium mb-3">Add a goal</h2>
+      <form method="post" action="/goals" class="space-y-2">
+        <input class="input" name="title" placeholder="What outcome?" required />
+        <textarea class="input textarea" name="description" rows="2" placeholder="Optional context"></textarea>
+        <div class="grid grid-cols-2 gap-2">
+          <select class="select" name="category">
+            {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+          <select class="select" name="kind" id="kind-select" onchange="document.getElementById('measurable-fields').style.display=this.value==='measurable'?'grid':'none'">
+            <option value="measurable">measurable</option>
+            <option value="binary">binary (done/not-done)</option>
+          </select>
+        </div>
+        <div id="measurable-fields" class="grid grid-cols-3 gap-2">
+          <input class="input" name="start_value" type="number" step="any" placeholder="start" />
+          <input class="input" name="target_value" type="number" step="any" placeholder="target" />
+          <input class="input" name="unit" placeholder="unit (kg, s, …)" />
+        </div>
+        <input class="input" name="milestones" placeholder="Milestones (optional): 3s:3, 5s:5, 10s:10" />
+        <button class="btn btn-primary">Create goal</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

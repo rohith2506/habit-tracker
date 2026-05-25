@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Check-in · Together{% endblock %}
+{% block content %}
+  <header class="mb-5 flex items-baseline justify-between">
+    <div>
+      <h1 class="text-xl font-medium">Today</h1>
+      <p class="text-sm text-neutral-500">{{ today.strftime('%A, %B %-d') }} · your local time</p>
+    </div>
+    {% if checkin.submitted_at %}
+      <span class="pill pill-success"><i class="ti ti-check"></i> Saved</span>
+    {% endif %}
+  </header>
+
+  {% if locked %}
+    <div class="card mb-4 bg-neutral-50 dark:bg-neutral-900">
+      <p class="text-sm text-neutral-500"><i class="ti ti-lock"></i> This day is locked. You can no longer edit it.</p>
+    </div>
+  {% endif %}
+
+  <section class="card mb-4">
+    <h2 class="text-sm font-medium mb-1">Habits</h2>
+    {% if not rows %}
+      <p class="text-sm text-neutral-500 py-4 text-center">No active habits. <a href="/habits" class="underline">Add some →</a></p>
+    {% endif %}
+    {% for row in rows %}
+      <div id="row-{{ row.habit.id }}">
+        {% with habit=row.habit, entry=row.entry, weekly_done=row.weekly_done %}
+          {% include "partials/checkin_row.html" %}
+        {% endwith %}
+      </div>
+    {% endfor %}
+  </section>
+
+  <section class="card mb-4">
+    <h2 class="text-sm font-medium mb-2">Just for today</h2>
+    <div id="adhoc-list" class="space-y-1">
+      {% for item in checkin.adhoc_items %}
+        {% include "partials/adhoc_item.html" %}
+      {% endfor %}
+    </div>
+    {% if not locked %}
+      <form hx-post="/checkin/adhoc" hx-target="#adhoc-list" hx-swap="beforeend" hx-on::after-request="this.reset()" class="flex gap-2 mt-2">
+        <input class="input flex-1" name="text" placeholder="One-off thing for today…" required />
+        <button class="btn">Add</button>
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="card mb-4">
+    <h2 class="text-sm font-medium mb-2">Note</h2>
+    <form hx-post="/checkin/note" hx-trigger="change from:textarea delay:400ms" hx-swap="none">
+      <textarea class="input textarea" name="note" rows="3" placeholder="A line about today…" {% if locked %}disabled{% endif %}>{{ checkin.note or '' }}</textarea>
+    </form>
+  </section>
+
+  {% if not locked %}
+    <form method="post" action="/checkin/save" class="sticky bottom-4">
+      <button class="btn btn-primary w-full justify-center py-3 shadow-md">
+        {% if checkin.submitted_at %}Update check-in{% else %}Save check-in{% endif %}
+      </button>
+    </form>
+  {% endif %}
+{% endblock %}

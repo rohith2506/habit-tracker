@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Habits · Together{% endblock %}
+{% block content %}
+  <header class="mb-5">
+    <h1 class="text-xl font-medium">Habits</h1>
+    <p class="text-sm text-neutral-500">Your daily list. Edit anytime. Keep it small.</p>
+  </header>
+
+  <section class="card mb-5">
+    <h2 class="text-sm font-medium mb-3">Add a habit</h2>
+    <form method="post" action="/habits" class="space-y-2">
+      <div class="flex gap-2">
+        <input class="input flex-1" name="name" placeholder="e.g. Strength training" required />
+        <select class="select w-32" name="icon">
+          {% for ic in icons %}<option value="{{ ic }}">{{ ic.replace('ti-','') }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="flex items-center gap-2 text-sm">
+        <label class="flex items-center gap-2">
+          <input type="radio" name="frequency" value="daily" checked />
+          Daily
+        </label>
+        <label class="flex items-center gap-2">
+          <input type="radio" name="frequency" value="weekly" />
+          Weekly target
+        </label>
+        <input class="input w-16" name="weekly_target" type="number" min="1" max="6" placeholder="3" />
+        <span class="text-neutral-500 text-xs">times/week</span>
+        <button class="btn btn-primary ml-auto">Add</button>
+      </div>
+    </form>
+    {% if over_soft_cap %}
+      <p class="text-xs text-warning mt-2"><i class="ti ti-alert-triangle"></i> You have more than 8 active habits. The list is hard to maintain. Consider pausing some.</p>
+    {% endif %}
+  </section>
+
+  <section class="card mb-5">
+    <h2 class="text-sm font-medium mb-2">Active</h2>
+    {% if not active_habits %}
+      <p class="text-sm text-neutral-500 py-4 text-center">No active habits yet. Add one above.</p>
+    {% endif %}
+    {% for h in active_habits %}
+      {% include "partials/habit_row.html" %}
+    {% endfor %}
+  </section>
+
+  {% if paused_habits %}
+    <section class="card mb-5">
+      <h2 class="text-sm font-medium mb-2 text-neutral-500">Paused</h2>
+      {% for h in paused_habits %}
+        <div class="habit-row text-neutral-500">
+          <div class="flex items-center gap-3">
+            <i class="ti {{ h.icon }}"></i>
+            <span>{{ h.name }}</span>
+            {% if h.pause_reason %}<span class="text-xs">— {{ h.pause_reason }}</span>{% endif %}
+          </div>
+          <div class="flex items-center gap-2">
+            <form method="post" action="/habits/{{ h.id }}/resume" class="inline"><button class="btn">Resume</button></form>
+            <form method="post" action="/habits/{{ h.id }}/delete" class="inline" onsubmit="return confirm('Delete this habit permanently? All past check-in entries for it will also be removed.')"><button class="btn text-warning"><i class="ti ti-trash"></i></button></form>
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if ended_habits %}
+    <section class="card opacity-70">
+      <h2 class="text-sm font-medium mb-2 text-neutral-500">Ended</h2>
+      {% for h in ended_habits %}
+        <div class="habit-row text-neutral-500">
+          <div class="flex items-center gap-3">
+            <i class="ti {{ h.icon }}"></i>
+            <span class="line-through">{{ h.name }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs">ended {{ h.ended_at|fmt_datetime }}</span>
+            <form method="post" action="/habits/{{ h.id }}/delete" class="inline" onsubmit="return confirm('Delete this habit permanently? All past check-in entries for it will also be removed.')"><button class="btn text-warning"><i class="ti ti-trash"></i></button></form>
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+<div id="adhoc-{{ item.id }}" class="flex items-center gap-2 py-1">
+  <form hx-post="/checkin/adhoc/{{ item.id }}/toggle" hx-target="#adhoc-{{ item.id }}" hx-swap="outerHTML" class="inline">
+    <button class="text-lg leading-none {% if item.done %}state-done{% else %}state-pending{% endif %}" title="Toggle">
+      {% if item.done %}<i class="ti ti-square-check"></i>{% else %}<i class="ti ti-square"></i>{% endif %}
+    </button>
+  </form>
+  <span class="flex-1 text-sm {% if item.done %}adhoc-done{% endif %}">{{ item.text }}</span>
+  <form hx-post="/checkin/adhoc/{{ item.id }}/delete" hx-target="#adhoc-{{ item.id }}" hx-swap="outerHTML" class="inline">
+    <button class="text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 text-sm" title="Remove"><i class="ti ti-trash"></i></button>
+  </form>
+</div>

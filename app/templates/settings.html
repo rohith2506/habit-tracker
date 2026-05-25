@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Settings · Together{% endblock %}
+{% block container_class %}max-w-xl mx-auto px-4 py-6{% endblock %}
+{% block content %}
+  <header class="mb-5">
+    <h1 class="text-xl font-medium">Settings</h1>
+  </header>
+
+  <form method="post" action="/settings" class="card space-y-3 mb-4">
+    <h2 class="text-sm font-medium">Profile</h2>
+    {% if saved %}<div class="text-xs text-success">Saved.</div>{% endif %}
+    <div>
+      <label class="text-xs text-neutral-500">Display name</label>
+      <input class="input mt-1" name="display_name" value="{{ user.display_name }}" required />
+    </div>
+    <div>
+      <label class="text-xs text-neutral-500">Avatar initial (1–2 chars)</label>
+      <input class="input mt-1" name="avatar_initial" maxlength="2" value="{{ user.avatar_initial }}" />
+    </div>
+    <div>
+      <label class="text-xs text-neutral-500">Timezone</label>
+      <select class="select mt-1" name="timezone">
+        {% for tz in tz_options %}<option value="{{ tz }}" {% if tz == user.timezone %}selected{% endif %}>{{ tz }}</option>{% endfor %}
+        {% if user.timezone not in tz_options %}<option value="{{ user.timezone }}" selected>{{ user.timezone }}</option>{% endif %}
+      </select>
+    </div>
+    <button class="btn btn-primary">Save profile</button>
+  </form>
+
+  <form method="post" action="/settings/password" class="card space-y-3">
+    <h2 class="text-sm font-medium">Change password</h2>
+    {% if pw_saved %}<div class="text-xs text-success">Password updated.</div>{% endif %}
+    {% if pw_error %}<div class="text-xs text-warning">{{ pw_error }}</div>{% endif %}
+    <input class="input" name="current_password" type="password" placeholder="Current password" required />
+    <input class="input" name="new_password" type="password" placeholder="New password" required />
+    <input class="input" name="confirm_password" type="password" placeholder="Confirm new password" required />
+    <button class="btn btn-primary">Change password</button>
+  </form>
+{% endblock %}

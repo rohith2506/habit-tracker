@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Together{% endblock %}
+{% block container_class %}max-w-5xl mx-auto px-4 py-6{% endblock %}
+{% block content %}
+  <header class="mb-5 flex items-end justify-between gap-2">
+    <div>
+      <h1 class="text-xl font-medium">Together</h1>
+      <p class="text-sm text-neutral-500">
+        Week {{ block_progress.week_n }}/{{ block_progress.length_weeks }} ·
+        {{ block_progress.days_remaining }} day{{ '' if block_progress.days_remaining == 1 else 's' }} left
+        · <a href="/block" class="underline hover:no-underline">Block</a>
+      </p>
+    </div>
+    <a href="/checkin" class="btn btn-primary"><i class="ti ti-circle-check"></i> Check in</a>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    {% with col=me_col, is_me=True %}{% include "partials/dashboard_column.html" %}{% endwith %}
+    {% if other_col %}
+      {% with col=other_col, is_me=False %}{% include "partials/dashboard_column.html" %}{% endwith %}
+    {% endif %}
+  </div>
+
+  <section>
+    <div class="flex items-end justify-between mb-2">
+      <h2 class="text-sm font-medium">Creative feed</h2>
+      <a href="/feed" class="text-xs text-neutral-500 hover:underline">All →</a>
+    </div>
+    {% if not posts %}
+      <div class="card text-center text-sm text-neutral-500 py-6">
+        No posts yet. <a href="/feed/new" class="underline">Share something →</a>
+      </div>
+    {% endif %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {% for post in posts %}
+        {% set owner = post.user %}
+        <a href="/feed" class="card hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors block">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="avatar {% if owner.color == 'blue' %}avatar-blue{% else %}avatar-pink{% endif %} w-6 h-6 text-xs">{{ owner.avatar_initial }}</span>
+            <span class="text-sm font-medium">{{ owner.display_name }}</span>
+            <span class="text-xs text-neutral-500">· {{ post.type }} · {{ post.created_at|fmt_local(user) }}</span>
+          </div>
+          {% if post.body %}<div class="text-sm text-neutral-700 dark:text-neutral-300 line-clamp-3">{{ post.body }}</div>{% endif %}
+          {% if post.media_url %}<div class="text-xs text-neutral-500 mt-1"><i class="ti ti-paperclip"></i> attachment</div>{% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

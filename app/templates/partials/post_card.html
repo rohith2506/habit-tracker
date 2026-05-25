@@ -1,0 +1,59 @@
+{% set owner = post.user %}
+{% set is_audio = post.media_url and (post.media_url.endswith('.mp3') or post.media_url.endswith('.m4a') or post.media_url.endswith('.wav') or post.media_url.endswith('.ogg')) %}
+<article class="card">
+  <header class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-2">
+      <span class="avatar {% if owner.color == 'blue' %}avatar-blue{% else %}avatar-pink{% endif %} w-7 h-7 text-xs">{{ owner.avatar_initial }}</span>
+      <div class="text-sm">
+        <span class="font-medium">{{ owner.display_name }}</span>
+        <span class="text-neutral-500"><i class="ti {{ icon_for(post.type) }}"></i> {{ post.type }} · {{ post.created_at|fmt_local(user) }}</span>
+      </div>
+    </div>
+    {% if post.user_id == user.id %}
+      <form method="post" action="/feed/{{ post.id }}/delete" onsubmit="return confirm('Delete this post? This cannot be undone.')" class="inline">
+        <button class="text-neutral-400 hover:text-warning text-sm" title="Delete post"><i class="ti ti-trash"></i></button>
+      </form>
+    {% endif %}
+  </header>
+  {% if post.media_url %}
+    {% if is_audio %}
+      <audio controls preload="none" class="w-full mb-2">
+        <source src="/uploads/{{ post.media_url }}" />
+      </audio>
+    {% else %}
+      <img src="/uploads/{{ post.media_url }}" alt="" class="w-full rounded-lg mb-2 max-h-[480px] object-contain bg-neutral-100 dark:bg-neutral-900" />
+    {% endif %}
+  {% endif %}
+  {% if post.body %}
+    <div class="prose-sm prose-neutral max-w-none text-sm leading-relaxed">{{ post.body | markdown }}</div>
+  {% endif %}
+
+  <div class="flex flex-wrap items-center gap-1 mt-3">
+    {% for em in emoji_whitelist %}
+      {% set count = post.reactions | selectattr('emoji', 'equalto', em) | list | length %}
+      {% set mine = post.reactions | selectattr('emoji', 'equalto', em) | selectattr('user_id', 'equalto', user.id) | list | length %}
+      <form method="post" action="/feed/{{ post.id }}/react" class="inline">
+        <input type="hidden" name="emoji" value="{{ em }}" />
+        <button class="pill {% if mine %}pill-info{% endif %}">{{ em }}{% if count %} {{ count }}{% endif %}</button>
+      </form>
+    {% endfor %}
+  </div>
+
+  {% set comments = post.reactions | selectattr('comment') | list %}
+  {% if comments %}
+    <div class="mt-3 space-y-1 border-t-0.5 border-neutral-200 dark:border-neutral-800 pt-2">
+      {% for c in comments %}
+        <div class="text-sm">
+          <span class="font-medium">{% if c.user_id == user.id %}You{% else %}{{ owner.display_name if c.user_id == owner.id else 'Them' }}{% endif %}:</span>
+          <span>{{ c.comment }}</span>
+          <span class="text-xs text-neutral-500">· {{ c.created_at|fmt_local(user) }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" action="/feed/{{ post.id }}/comment" class="flex gap-2 mt-2">
+    <input class="input flex-1" name="text" placeholder="Reply…" />
+    <button class="btn">Send</button>
+  </form>
+</article>

@@ -1,0 +1,45 @@
+<details class="border-b-0.5 border-neutral-200 dark:border-neutral-800 last:border-b-0">
+  <summary class="habit-row cursor-pointer list-none">
+    <div class="flex items-center gap-3">
+      <i class="ti {{ h.icon }} text-lg"></i>
+      <span>{{ h.name }}</span>
+      {% if h.frequency == 'weekly' %}
+        <span class="pill pill-info">{{ h.weekly_target }}×/wk</span>
+      {% else %}
+        <span class="pill pill-muted">daily</span>
+      {% endif %}
+    </div>
+    <div class="flex items-center gap-1 text-neutral-500">
+      <form method="post" action="/habits/{{ h.id }}/move" class="inline">
+        <input type="hidden" name="direction" value="up" />
+        <button type="submit" class="px-2 py-1 hover:text-neutral-900 dark:hover:text-neutral-100" title="Move up"><i class="ti ti-chevron-up"></i></button>
+      </form>
+      <form method="post" action="/habits/{{ h.id }}/move" class="inline">
+        <input type="hidden" name="direction" value="down" />
+        <button type="submit" class="px-2 py-1 hover:text-neutral-900 dark:hover:text-neutral-100" title="Move down"><i class="ti ti-chevron-down"></i></button>
+      </form>
+      <span class="px-1"><i class="ti ti-chevron-right"></i></span>
+    </div>
+  </summary>
+  <div class="px-1 pb-3 pt-1">
+    <form method="post" action="/habits/{{ h.id }}/update" class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+      <input class="input sm:col-span-2" name="name" value="{{ h.name }}" />
+      <select class="select" name="icon">
+        {% for ic in icons %}<option value="{{ ic }}" {% if ic == h.icon %}selected{% endif %}>{{ ic.replace('ti-','') }}</option>{% endfor %}
+      </select>
+      <div class="flex items-center gap-2">
+        <select class="select" name="frequency">
+          <option value="daily" {% if h.frequency == 'daily' %}selected{% endif %}>daily</option>
+          <option value="weekly" {% if h.frequency == 'weekly' %}selected{% endif %}>weekly</option>
+        </select>
+        <input class="input w-16" name="weekly_target" type="number" min="1" max="6" value="{{ h.weekly_target or '' }}" placeholder="–" />
+      </div>
+      <div class="sm:col-span-4 flex items-center gap-2 justify-end flex-wrap">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <form method="post" action="/habits/{{ h.id }}/pause" class="inline"><button class="btn">Pause</button></form>
+        <form method="post" action="/habits/{{ h.id }}/end" class="inline" onsubmit="return confirm('End this habit? It will be removed from future check-ins but historical data stays.')"><button class="btn">End</button></form>
+        <form method="post" action="/habits/{{ h.id }}/delete" class="inline" onsubmit="return confirm('Delete this habit permanently? All past check-in entries for it will also be removed. This cannot be undone.')"><button class="btn text-warning">Delete</button></form>
+      </div>
+    </form>
+  </div>
+</details>

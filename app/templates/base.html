@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0e0f10" media="(prefers-color-scheme: dark)" />
+  <title>{% block title %}Together{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'media',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            blueA:    { 50: '#E6F1FB', 100: '#CCE3F6', 400: '#378ADD', 700: '#0C447C' },
+            pinkB:    { 50: '#FBEAF0', 100: '#F7D5E2', 400: '#D4537E', 700: '#72243E' },
+            success:  '#1D9E75',
+            warning:  '#BA7517',
+          },
+          borderWidth: { '0.5': '0.5px' },
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.21.0/dist/tabler-icons.min.css" />
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+  <link rel="stylesheet" href="/static/app.css" />
+</head>
+<body class="bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 font-sans antialiased min-h-screen">
+  {% if user %}
+  <nav class="border-b-0.5 border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="font-medium tracking-tight text-base">Together</a>
+      <div class="flex items-center gap-1 text-sm">
+        {% set nav = [
+          ('/', 'Home'),
+          ('/checkin', 'Check-in'),
+          ('/goals', 'Goals'),
+          ('/habits', 'Habits'),
+          ('/feed', 'Feed'),
+          ('/block', 'Block'),
+        ] %}
+        {% for href, label in nav %}
+          <a href="{{ href }}"
+             class="px-2.5 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 {% if request.url.path == href or (href != '/' and request.url.path.startswith(href)) %}bg-neutral-100 dark:bg-neutral-800 font-medium{% endif %}">
+            {{ label }}
+          </a>
+        {% endfor %}
+        <a href="/settings" class="px-2.5 py-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Settings"><i class="ti ti-settings"></i></a>
+        <span class="inline-flex items-center gap-2 ml-2 pl-3 border-l-0.5 border-neutral-200 dark:border-neutral-800">
+          <span class="w-6 h-6 inline-flex items-center justify-center rounded-full text-xs font-medium
+            {% if user.color == 'blue' %}bg-blueA-50 text-blueA-700 dark:bg-blueA-700 dark:text-blueA-50{% else %}bg-pinkB-50 text-pinkB-700 dark:bg-pinkB-700 dark:text-pinkB-50{% endif %}">
+            {{ user.avatar_initial }}
+          </span>
+          <form method="post" action="/logout" class="inline">
+            <button class="text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100" title="Log out"><i class="ti ti-logout"></i></button>
+          </form>
+        </span>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+  <main class="{% block container_class %}max-w-3xl mx-auto px-4 py-6{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

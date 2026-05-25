@@ -1,0 +1,29 @@
+{% set state = entry.state %}
+<div id="row-{{ habit.id }}" class="habit-row">
+  <div class="flex items-center gap-3">
+    <i class="ti {{ habit.icon }} text-lg"></i>
+    <div>
+      <div class="text-sm">{{ habit.name }}</div>
+      <div class="text-xs text-neutral-500">
+        {% if habit.frequency == 'weekly' %}
+          {{ weekly_done }} of {{ habit.weekly_target }} this week
+        {% else %}
+          daily
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <form hx-post="/checkin/entry/{{ habit.id }}/cycle" hx-target="#row-{{ habit.id }}" hx-swap="outerHTML">
+    <button class="btn min-w-20 justify-center">
+      {% if state == 'done' %}
+        <i class="ti ti-circle-check state-done"></i> <span class="state-done">done</span>
+      {% elif state == 'rest' %}
+        <i class="ti ti-zzz state-rest"></i> <span class="state-rest">rest</span>
+      {% elif state == 'missed' %}
+        <i class="ti ti-x state-missed"></i> <span class="state-missed">missed</span>
+      {% else %}
+        <i class="ti ti-circle state-pending"></i> <span class="state-pending">pending</span>
+      {% endif %}
+    </button>
+  </form>
+</div>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Feed · Together{% endblock %}
+{% block content %}
+  <header class="mb-5 flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-medium">Feed</h1>
+      <p class="text-sm text-neutral-500">What you've been making.</p>
+    </div>
+    <a href="/feed/new" class="btn btn-primary"><i class="ti ti-plus"></i> Post</a>
+  </header>
+
+  <div class="flex flex-wrap gap-1 mb-4">
+    <a href="?filter=all" class="tab {% if filter == 'all' %}active{% endif %}">all</a>
+    {% for t in types %}
+      <a href="?filter={{ t }}" class="tab {% if filter == t %}active{% endif %}">{{ t }}</a>
+    {% endfor %}
+  </div>
+
+  {% if not posts %}
+    <div class="card text-center text-sm text-neutral-500 py-10">No posts yet.</div>
+  {% endif %}
+
+  <div class="space-y-4">
+    {% for post in posts %}
+      {% include "partials/post_card.html" %}
+    {% endfor %}
+  </div>
+{% endblock %}
