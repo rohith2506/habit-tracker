@@ -11,7 +11,7 @@ from .db import Base, engine
 from . import models  # ensure models are imported so Base knows about them
 from .templating import templates
 from .routes import auth as auth_routes
-from .routes import dashboard, checkin, habits, goals, feed, block as block_routes, settings as settings_routes
+from .routes import dashboard, checkin, habits, goals, feed, settings as settings_routes
 from .scheduler import start_scheduler, stop_scheduler
 
 
@@ -49,5 +49,4 @@ app.include_router(checkin.router)
 app.include_router(habits.router)
 app.include_router(goals.router)
 app.include_router(feed.router)
-app.include_router(block_routes.router)
 app.include_router(settings_routes.router)

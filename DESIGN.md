@@ -4,6 +4,8 @@ A two-person accountability tracker for a long-distance couple. Not a habit-trac
 
 This document is the v1 spec. Build to this. Where it's silent, prefer simplicity.
 
+> **Post-v1 change (2026-05-27): Blocks removed.** The 8-week **Block** container and its mid/end **reviews**, next-block setup, carry-over, and history have been removed to cut complexity. Goals and habits are now **global per user** (no `block_id`, no block dates). Goal **pace** ("on track / behind pace") depended on the block timeframe and was removed too — goals keep progress %, milestones, attempts, status, amend, and resolve. The sections below describing Block, BlockReview, `/block*`, and pace are retained for historical context but no longer reflect the implementation.
+
 ---
 
 ## Users

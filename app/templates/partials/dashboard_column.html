@@ -41,7 +41,7 @@
         <div>
           <div class="flex items-center justify-between text-sm">
             <span class="truncate min-w-0">{{ item.goal.title }}</span>
-            {% if item.pace.message %}<span class="pill {{ item.pace.badge_class }}">{{ item.pace.message }}</span>{% endif %}
+            {% if item.goal.status != 'active' %}<span class="pill pill-muted">{{ item.goal.status }}</span>{% endif %}
           </div>
           {% if item.goal.kind == 'measurable' %}
             <div class="progress-track mt-1">

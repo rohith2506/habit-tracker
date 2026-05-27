@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session as OrmSession
 from datetime import datetime
 
 from ..auth import login_required
-from ..blocks import ensure_active_block
 from ..db import get_db
 from ..models import Habit, User
 from ..templating import templates
@@ -30,11 +29,11 @@ def _opt_int(s: str | None) -> int | None:
         return None
 
 
-def _my_habits(db: OrmSession, user: User, block_id: int) -> list[Habit]:
+def _my_habits(db: OrmSession, user: User) -> list[Habit]:
     return (
         db.execute(
             select(Habit)
-            .where(Habit.user_id == user.id, Habit.block_id == block_id)
+            .where(Habit.user_id == user.id)
             .order_by(Habit.status == "active", Habit.position, Habit.id)
         )
         .scalars()
@@ -43,15 +42,13 @@ def _my_habits(db: OrmSession, user: User, block_id: int) -> list[Habit]:
 
 
 def _ctx(request: Request, db: OrmSession, user: User):
-    block = ensure_active_block(db)
-    habits = _my_habits(db, user, block.id)
+    habits = _my_habits(db, user)
     active = [h for h in habits if h.status == "active"]
     paused = [h for h in habits if h.status == "paused"]
     ended = [h for h in habits if h.status == "ended"]
     return {
         "request": request,
         "user": user,
-        "block": block,
         "active_habits": active,
         "paused_habits": paused,
         "ended_habits": ended,
@@ -75,7 +72,6 @@ def create(
     user: User = Depends(login_required),
     db: OrmSession = Depends(get_db),
 ):
-    block = ensure_active_block(db)
     name = name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name required")
@@ -87,9 +83,9 @@ def create(
     else:
         wt = None
     # Position at end of active
-    last_pos = db.query(Habit).filter(Habit.user_id == user.id, Habit.block_id == block.id).count()
+    last_pos = db.query(Habit).filter(Habit.user_id == user.id).count()
     h = Habit(
-        user_id=user.id, block_id=block.id,
+        user_id=user.id,
         name=name, icon=icon if icon in HABIT_ICONS else "ti-check",
         frequency=frequency, weekly_target=wt,
         position=last_pos,
@@ -179,10 +175,9 @@ def move(
     user: User = Depends(login_required),
     db: OrmSession = Depends(get_db),
 ):
-    block = ensure_active_block(db)
     habits = (
         db.query(Habit)
-        .filter(Habit.user_id == user.id, Habit.block_id == block.id, Habit.status == "active")
+        .filter(Habit.user_id == user.id, Habit.status == "active")
         .order_by(Habit.position, Habit.id)
         .all()
     )

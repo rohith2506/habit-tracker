@@ -5,7 +5,6 @@ from fastapi.responses import RedirectResponse, Response
 from sqlalchemy.orm import Session as OrmSession
 
 from ..auth import login_required
-from ..blocks import ensure_active_block
 from ..db import get_db
 from ..models import AdHocItem, CheckIn, CheckInEntry, Habit, User
 from ..stats import (
@@ -18,10 +17,10 @@ from ..time_utils import today_for, is_within_grace
 router = APIRouter()
 
 
-def _active_habits(db: OrmSession, user: User, block_id: int) -> list[Habit]:
+def _active_habits(db: OrmSession, user: User) -> list[Habit]:
     return (
         db.query(Habit)
-        .filter(Habit.user_id == user.id, Habit.block_id == block_id, Habit.status == "active")
+        .filter(Habit.user_id == user.id, Habit.status == "active")
         .order_by(Habit.position, Habit.id)
         .all()
     )
@@ -38,9 +37,8 @@ def _row_context(db: OrmSession, user: User, entry: CheckInEntry, habit: Habit) 
 
 @router.get("/checkin")
 def page(request: Request, user: User = Depends(login_required), db: OrmSession = Depends(get_db)):
-    block = ensure_active_block(db)
     ci = get_or_create_today(db, user)
-    habits = _active_habits(db, user, block.id)
+    habits = _active_habits(db, user)
     ensure_entries_for(db, ci, habits)
     # map entries by habit id
     entries_by_habit = {e.habit_id: e for e in ci.entries}
@@ -57,7 +55,6 @@ def page(request: Request, user: User = Depends(login_required), db: OrmSession 
         {
             "request": request,
             "user": user,
-            "block": block,
             "checkin": ci,
             "rows": rows,
             "today": today,

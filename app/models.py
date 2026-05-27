@@ -41,25 +41,11 @@ class Session(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
 
-class Block(Base):
-    __tablename__ = "blocks"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    start_date: Mapped[date] = mapped_column(Date)
-    end_date: Mapped[date] = mapped_column(Date)
-    length_weeks: Mapped[int] = mapped_column(Integer, default=8)
-    status: Mapped[str] = mapped_column(String(16), default="active")  # active | completed
-    mid_review_done_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    end_review_done_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
-
-
 class Goal(Base):
     __tablename__ = "goals"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    block_id: Mapped[int] = mapped_column(ForeignKey("blocks.id", ondelete="CASCADE"))
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     category: Mapped[str] = mapped_column(String(32))  # body | skill | creative | learning
@@ -86,7 +72,7 @@ class Goal(Base):
     milestones: Mapped[List["GoalMilestone"]] = relationship(back_populates="goal", cascade="all, delete-orphan", order_by="GoalMilestone.position")
 
     __table_args__ = (
-        Index("ix_goals_block_user", "block_id", "user_id"),
+        Index("ix_goals_user", "user_id"),
     )
 
 
@@ -132,7 +118,6 @@ class Habit(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    block_id: Mapped[int] = mapped_column(ForeignKey("blocks.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(120))
     icon: Mapped[str] = mapped_column(String(64), default="ti-check")
     frequency: Mapped[str] = mapped_column(String(16), default="daily")  # daily | weekly
@@ -147,7 +132,7 @@ class Habit(Base):
     user: Mapped["User"] = relationship(back_populates="habits")
 
     __table_args__ = (
-        Index("ix_habits_block_user_status", "block_id", "user_id", "status"),
+        Index("ix_habits_user_status", "user_id", "status"),
     )
 
 
@@ -222,18 +207,3 @@ class Reaction(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     post: Mapped["CreativePost"] = relationship(back_populates="reactions")
-
-
-class BlockReview(Base):
-    __tablename__ = "block_reviews"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    block_id: Mapped[int] = mapped_column(ForeignKey("blocks.id", ondelete="CASCADE"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    kind: Mapped[str] = mapped_column(String(8))  # "mid" | "end"
-    note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
-
-    __table_args__ = (
-        UniqueConstraint("block_id", "user_id", "kind", name="uq_block_review"),
-    )

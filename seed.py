@@ -1,15 +1,13 @@
-"""Seed the database with the two users and an initial block.
+"""Seed the database with the two users.
 
 Usage:
     python seed.py             # creates users if missing, default passwords
     python seed.py --reset     # drops & recreates all tables, then seeds
 """
 import argparse
-import sys
-from datetime import date, timedelta
 
 from app.db import Base, engine, SessionLocal
-from app.models import User, Block
+from app.models import User
 from app.security import hash_password
 
 
@@ -52,21 +50,6 @@ def main():
             )
             db.add(user)
             created.append(spec)
-
-        # Active block
-        existing_block = db.query(Block).filter(Block.status == "active").first()
-        if not existing_block:
-            today = date.today()
-            block = Block(
-                start_date=today,
-                end_date=today + timedelta(weeks=8) - timedelta(days=1),
-                length_weeks=8,
-                status="active",
-            )
-            db.add(block)
-            print(f"  created initial 8-week block: {block.start_date} → {block.end_date}")
-        else:
-            print(f"  active block exists: {existing_block.start_date} → {existing_block.end_date}")
 
         db.commit()
         for spec in created:

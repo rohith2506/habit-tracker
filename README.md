@@ -11,7 +11,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Seed the two users + an initial 8-week block (defaults in seed.py)
+# Seed the two users (defaults in seed.py)
 python seed.py
 
 # Run the dev server (auto-reloads on file changes)
@@ -60,8 +60,7 @@ app/
   security.py          # bcrypt + session id
   auth.py              # Session deps (login_required, current_user_optional)
   time_utils.py        # Per-user timezone helpers
-  blocks.py            # Active block + progress
-  stats.py             # Streak, weekly %, goal pace, day rollover
+  stats.py             # Streak, weekly %, goal progress, day rollover
   scheduler.py         # APScheduler day-rollover job
   templating.py        # Jinja env + filters
   routes/              # One file per area
@@ -71,13 +70,12 @@ app/
     habits.py          # /habits CRUD (incl. delete)
     goals.py           # /goals CRUD (incl. delete)
     feed.py            # /feed + composer + uploads + reactions/comments (incl. delete)
-    block.py           # /block + mid/end reviews + next-block + delete
     settings.py        # /settings + password change
   templates/           # Jinja templates
     partials/          # Reusable fragments (habit_row, checkin_row, goal_card, post_card, …)
   static/app.css       # Tailwind-layered custom styles
-alembic/               # DB migrations (initial migration in versions/)
-seed.py                # Create the two users + initial block (--reset wipes)
+alembic/               # DB migrations (initial schema + remove-blocks in versions/)
+seed.py                # Create the two users (--reset wipes)
 Dockerfile, fly.toml   # Production deploy config
 ```
 
@@ -85,6 +83,6 @@ Dockerfile, fly.toml   # Production deploy config
 
 - Each user has their own timezone; "today" is computed per user.
 - Daily rollover is handled by an APScheduler hourly job that locks past-day check-ins after a 6-hour grace window.
-- Habits, goals, posts, and entire blocks all have **delete** (owner-only). Habits also support a non-destructive `End` that preserves history.
+- Habits, goals, and posts all have **delete** (owner-only). Habits also support a non-destructive `End` that preserves history.
 - Cascade is at the DB level via `ondelete="CASCADE"` + `PRAGMA foreign_keys=ON`.
 - File uploads are served only through `/uploads/:filename`, which requires a valid session — never as static files.

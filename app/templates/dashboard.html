@@ -5,11 +5,6 @@
   <header class="mb-5 flex items-end justify-between gap-2">
     <div>
       <h1 class="text-xl font-medium">Together</h1>
-      <p class="text-sm text-neutral-500">
-        Week {{ block_progress.week_n }}/{{ block_progress.length_weeks }} ·
-        {{ block_progress.days_remaining }} day{{ '' if block_progress.days_remaining == 1 else 's' }} left
-        · <a href="/block" class="underline hover:no-underline">Block</a>
-      </p>
     </div>
     <a href="/checkin" class="btn btn-primary"><i class="ti ti-circle-check"></i> Check in</a>
   </header>

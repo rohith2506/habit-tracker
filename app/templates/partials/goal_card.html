@@ -8,8 +8,6 @@
     <div class="flex flex-col items-end gap-1">
       {% if goal.status != 'active' %}
         <span class="pill pill-muted">{{ goal.status }}</span>
-      {% elif pace.message %}
-        <span class="pill {{ pace.badge_class }}">{{ pace.message }}</span>
       {% endif %}
       {% if goal.amended_at %}<span class="pill pill-muted">amended</span>{% endif %}
     </div>

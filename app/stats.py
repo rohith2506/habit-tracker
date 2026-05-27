@@ -4,7 +4,7 @@ from typing import Iterable
 from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 
-from .models import Block, CheckIn, CheckInEntry, Habit, Goal, GoalMilestone, User
+from .models import CheckIn, CheckInEntry, Habit, Goal, User
 from .time_utils import today_for, week_start
 
 
@@ -136,45 +136,3 @@ def goal_progress_summary(goal: Goal) -> dict:
         progressed = (latest - start) / span
         pct = round(100 * max(0.0, min(1.0, progressed)))
     return {"current": latest, "pct": pct, "delta": (latest - start) if latest is not None else 0}
-
-
-def goal_pace(goal: Goal, block: Block, today: date) -> dict:
-    """Returns {status, message, badge_class}. status in: on_track | behind | hit | none."""
-    if goal.kind != "measurable":
-        # binary with milestones
-        if goal.milestones:
-            hit_count = sum(1 for m in goal.milestones if m.hit_at is not None)
-            total = len(goal.milestones)
-            if total == 0:
-                return {"status": "none", "message": "", "badge_class": ""}
-            total_days = (block.end_date - block.start_date).days + 1
-            days_elapsed = max(0, min(total_days, (today - block.start_date).days + 1))
-            elapsed = days_elapsed / total_days if total_days else 0
-            progress = hit_count / total
-            if progress >= 1.0:
-                return {"status": "hit", "message": "hit", "badge_class": "pill-success"}
-            if progress >= elapsed - 0.05:
-                return {"status": "on_track", "message": "on track", "badge_class": "pill-info"}
-            return {"status": "behind", "message": "behind pace", "badge_class": "pill-warning"}
-        return {"status": "none", "message": "", "badge_class": ""}
-
-    summary = goal_progress_summary(goal)
-    total_days = (block.end_date - block.start_date).days + 1
-    days_elapsed = max(0, min(total_days, (today - block.start_date).days + 1))
-    elapsed = days_elapsed / total_days if total_days else 0
-    progressed = (summary["pct"] or 0) / 100.0
-
-    if progressed >= 1.0:
-        return {"status": "hit", "message": "hit", "badge_class": "pill-success"}
-
-    if progressed >= elapsed - 0.05:
-        return {"status": "on_track", "message": "on track", "badge_class": "pill-info"}
-
-    # Estimate end-of-block extrapolation
-    if days_elapsed > 0 and progressed > 0:
-        projected_done_days = days_elapsed / progressed
-        finish_week = int(projected_done_days // 7) + 1
-        msg = f"behind pace · at current pace, finish in week {finish_week}"
-    else:
-        msg = "behind pace"
-    return {"status": "behind", "message": msg, "badge_class": "pill-warning"}

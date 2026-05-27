@@ -5,12 +5,10 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session as OrmSession
 
 from ..auth import login_required, other_user
-from ..blocks import ensure_active_block
 from ..db import get_db
 from ..models import Goal, GoalAttempt, GoalMilestone, GoalProgress, User
-from ..stats import goal_pace, goal_progress_summary
+from ..stats import goal_progress_summary
 from ..templating import templates
-from ..time_utils import today_for
 
 
 router = APIRouter()
@@ -28,24 +26,17 @@ def _opt_float(s: str | None) -> float | None:
         return None
 
 
-def _goals_for(db: OrmSession, user_id: int, block_id: int) -> list[Goal]:
+def _goals_for(db: OrmSession, user_id: int) -> list[Goal]:
     return (
         db.query(Goal)
-        .filter(Goal.user_id == user_id, Goal.block_id == block_id)
+        .filter(Goal.user_id == user_id)
         .order_by(Goal.category, Goal.id)
         .all()
     )
 
 
-def _annotate(goals: list[Goal], block, today):
-    out = []
-    for g in goals:
-        out.append({
-            "goal": g,
-            "summary": goal_progress_summary(g),
-            "pace": goal_pace(g, block, today),
-        })
-    return out
+def _annotate(goals: list[Goal]):
+    return [{"goal": g, "summary": goal_progress_summary(g)} for g in goals]
 
 
 @router.get("/goals")
@@ -57,12 +48,10 @@ def page(
 ):
     if view not in ("me", "other", "both"):
         view = "me"
-    block = ensure_active_block(db)
-    today = today_for(user)
     other = other_user(db, user)
 
-    my_goals = _annotate(_goals_for(db, user.id, block.id), block, today)
-    other_goals = _annotate(_goals_for(db, other.id, block.id), block, today) if other else []
+    my_goals = _annotate(_goals_for(db, user.id))
+    other_goals = _annotate(_goals_for(db, other.id)) if other else []
 
     return templates.TemplateResponse(
         "goals.html",
@@ -70,7 +59,6 @@ def page(
             "request": request,
             "user": user,
             "other": other,
-            "block": block,
             "view": view,
             "categories": CATEGORIES,
             "my_goals": my_goals,
@@ -94,7 +82,6 @@ def create(
 ):
     sv = _opt_float(start_value)
     tv = _opt_float(target_value)
-    block = ensure_active_block(db)
     title = title.strip()
     if not title:
         raise HTTPException(400, "Title required")
@@ -104,7 +91,7 @@ def create(
         kind = "measurable"
 
     g = Goal(
-        user_id=user.id, block_id=block.id,
+        user_id=user.id,
         title=title, description=description.strip() or None,
         category=category, kind=kind, status="active",
     )
